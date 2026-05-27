@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
   },
 
   radioDone: {
-    backgroundColor: "#4F8EF7",
-    borderColor: "#4F8EF7",
+    backgroundColor: "#4ff75d34",
+    borderColor: "#999",
   },
 
   title: {
