@@ -1,15 +1,15 @@
-import { View, Text } from "react-native";
+import { Text, View } from "react-native";
+import TaskCard from "../../components/taskcard";
 
 export default function Index() {
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 28, fontWeight: "bold" }}>
+    <View style={{ flex: 1, padding: 20, backgroundColor: "#F5F1E6" }}>
+      <Text style={{ marginTop: 40, fontSize: 28, fontWeight: "bold" }}>
         PlanWerk 🚀
       </Text>
 
-      <Text style={{ marginTop: 10 }}>
-        Dein Projektmanagement Dashboard
-      </Text>
+
+      <TaskCard />
     </View>
   );
 }

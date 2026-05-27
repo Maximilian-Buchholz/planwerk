@@ -1,21 +1,23 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { DMMono_400Regular, DMMono_700Bold } from "@expo-google-fonts/dm-mono";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import "react-native-reanimated";
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: "(tabs)",
 };
 
-
 export default function RootLayout() {
+  const [loaded] = useFonts({
+    DMMono_Regular: DMMono_400Regular,
+    DMMono_Bold: DMMono_700Bold,
+  });
+
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#d7cec7" },
+        contentStyle: { backgroundColor: "#bfa877" },
       }}
     />
   );
