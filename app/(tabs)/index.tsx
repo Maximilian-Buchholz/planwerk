@@ -1,15 +1,66 @@
-import { Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import TaskCard from "../../components/taskcard";
 
 export default function Index() {
   return (
-    <View style={{ flex: 1, padding: 20, backgroundColor: "#F5F1E6" }}>
-      <Text style={{ marginTop: 40, fontSize: 28, fontWeight: "bold" }}>
-        PlanWerk 🚀
-      </Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text
+          style={{
+            marginTop: 40,
+            marginBottom: 20,
+            fontSize: 28,
+            fontWeight: "bold",
+          }}
+        >
+          PlanWerk 🚀
+        </Text>
 
+        <TaskCard />
+      </ScrollView>
 
-      <TaskCard />
+      <View style={styles.actionBar}>
+        <Pressable style={styles.button}>
+          <Text style={styles.buttonText}>+</Text>
+        </Pressable>
+
+        <Pressable style={styles.button}>
+          <Text style={styles.buttonText}>Sort</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  actionBar: {
+    position: "absolute",
+    bottom: 15, // über TabBar
+
+    alignSelf: "center",
+
+    flexDirection: "row",
+    gap: 0,
+
+    backgroundColor: "#8c8cab",
+    padding: 5,
+    borderRadius: 16,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+
+  button: {
+    backgroundColor: "#8c8cab",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+
+  buttonText: {
+    color: "white",
+    fontWeight: "600",
+  },
+});
