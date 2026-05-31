@@ -10,14 +10,13 @@ export const unstable_settings = {
 export default function RootLayout() {
   const [loaded] = useFonts({
     DMMono_Regular: DMMono_400Regular,
-    
   });
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: "#bfa877" },
+        contentStyle: { backgroundColor: "#ffffff" },
       }}
     />
   );

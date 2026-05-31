@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 0,
 
-    backgroundColor: "#8c8cab",
+    backgroundColor: "#000000",
     padding: 5,
     borderRadius: 16,
 
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: "#8c8cab",
+    backgroundColor: "#000000",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 10,
