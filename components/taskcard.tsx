@@ -237,4 +237,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+
+  bottomSheet: {
+    flex: 1,
+    justifyContent: "center",
+
+  },
+
 });
