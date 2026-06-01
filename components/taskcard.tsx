@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import {
@@ -9,15 +10,45 @@ import {
   View,
 } from "react-native";
 
-export default function TaskCard() {
-  const [date, setDate] = useState(new Date());
+type Task = {
+  id: string;
+  title: string;
+  project_name: string;
+  due_date: string;
+  done: boolean;
+};
+
+type Props = {
+  task: Task;
+  onUpdate: (updated: Task) => void;
+  onDelete: (id: string) => void;
+};
+
+export default function TaskCard({ task, onUpdate, onDelete }: Props) {
+  const [date, setDate] = useState(new Date(task.due_date));
   const [show, setShow] = useState(false);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(task.done);
   const [expanded, setExpanded] = useState(false);
-  const [title, setTitle] = useState("Aufgabenname");
-  const [projectName, setProjectName] = useState("Projekt");
+  const [title, setTitle] = useState(task.title);
+  const [projectName, setProjectName] = useState(task.project_name ?? "");
 
   const animHeight = useRef(new Animated.Value(0)).current;
+
+  const handleSave = async () => {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        title,
+        project_name: projectName,
+        due_date: date.toISOString().split("T")[0],
+      })
+      .eq("id", task.id)
+      .select()
+      .single();
+
+    if (!error && data) onUpdate(data);
+    toggleExpand();
+  };
 
   const toggleExpand = () => {
     Animated.timing(animHeight, {
@@ -107,7 +138,7 @@ export default function TaskCard() {
             placeholder="Hier tippen..."
           />
 
-          <Pressable style={styles.saveBtn} onPress={toggleExpand}>
+          <Pressable style={styles.saveBtn} onPress={handleSave}>
             <Text style={styles.saveBtnText}>Speichern</Text>
           </Pressable>
         </View>
@@ -241,7 +272,5 @@ const styles = StyleSheet.create({
   bottomSheet: {
     flex: 1,
     justifyContent: "center",
-
   },
-
 });

@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Pressable,
@@ -8,17 +10,76 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-import DateTimePicker from "@react-native-community/datetimepicker";
 import TaskCard from "../../components/taskcard";
 
+type Task = {
+  id: string;
+  title: string;
+  project_name: string;
+  due_date: string;
+  done: boolean;
+};
+
 export default function Index() {
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [visible, setVisible] = useState(false);
 
+  // Formular-State
   const [title, setTitle] = useState("");
   const [projectName, setProjectName] = useState("");
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
+
+  // Aufgaben beim Start laden
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const { data } = await supabase
+        .from("tasks")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setTasks(data);
+    };
+    fetchTasks();
+  }, []);
+
+  // Neue Aufgabe erstellen
+  const handleCreate = async () => {
+    if (!title.trim()) return;
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .insert({
+        title,
+        project_name: projectName,
+        due_date: date.toISOString().split("T")[0],
+      })
+      .select()
+      .single();
+
+    console.log("data:", data);
+    console.log("error:", error); // ← Was steht hier?
+    // oben einfügen
+    if (data) {
+      setTasks((prev) => [data, ...prev]);
+    }
+
+    // Reset
+    setTitle("");
+    setProjectName("");
+    setDate(new Date());
+    setVisible(false);
+  };
+
+  // Task updaten (nach editieren)
+  const handleUpdate = (updated: Task) => {
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+  };
+
+  // Task löschen
+  const handleDelete = async (id: string) => {
+    await supabase.from("tasks").delete().eq("id", id);
+    setTasks((prev) => prev.filter((tasks) => tasks.id !== id));
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -34,7 +95,15 @@ export default function Index() {
           PlanWerk 🚀
         </Text>
 
-        <TaskCard />
+        {/* Tasks aus der DB rendern */}
+        {tasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
+        ))}
       </ScrollView>
 
       {/* ACTION BAR */}
@@ -61,6 +130,16 @@ export default function Index() {
                 onChangeText={setTitle}
                 placeholder="Titel"
               />
+              <TextInput
+                style={styles.input}
+                value={projectName}
+                onChangeText={setProjectName}
+                placeholder="Projektname"
+              />
+
+              <Pressable onPress={() => setShow(true)} style={styles.metaBtn}>
+                <Text>{date.toLocaleDateString("de-DE")}</Text>
+              </Pressable>
 
               {/* META ROW */}
               <View style={{ flexDirection: "row", gap: 10 }}>
@@ -85,41 +164,14 @@ export default function Index() {
                 <DateTimePicker
                   value={date}
                   mode="date"
-                  onChange={(event, selectedDate) => {
+                  onChange={(_, d) => {
                     setShow(false);
-                    if (selectedDate) setDate(selectedDate);
+                    if (d) setDate(d);
                   }}
                 />
               )}
 
-              <TextInput
-                style={styles.input}
-                value={projectName}
-                onChangeText={setProjectName}
-                placeholder="Projektname"
-              />
-
-              <Text style={styles.label}>Beschreibung</Text>
-
-              <TextInput
-                multiline
-                style={styles.textArea}
-                textAlignVertical="top"
-                placeholder="Hier tippen..."
-              />
-
-              <Pressable
-                style={styles.saveBtn}
-                onPress={() => {
-                  console.log({
-                    title,
-                    projectName,
-                    date,
-                  });
-
-                  setVisible(false);
-                }}
-              >
+              <Pressable style={styles.saveBtn} onPress={handleCreate}>
                 <Text style={styles.saveBtnText}>Speichern</Text>
               </Pressable>
             </View>
