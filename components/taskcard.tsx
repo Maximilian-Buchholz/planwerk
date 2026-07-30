@@ -1,7 +1,9 @@
+import { formatDueDate } from "@/lib/date";
 import { supabase } from "@/lib/supabase";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Pressable,
   StyleSheet,
@@ -50,6 +52,21 @@ export default function TaskCard({ task, onUpdate, onDelete }: Props) {
     toggleExpand();
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Aufgabe löschen",
+      "Möchtest du diese Aufgabe wirklich löschen?",
+      [
+        { text: "Abbrechen", style: "cancel" },
+        {
+          text: "Löschen",
+          style: "destructive",
+          onPress: () => onDelete(task.id),
+        },
+      ]
+    );
+  };
+
   const toggleExpand = () => {
     Animated.timing(animHeight, {
       toValue: expanded ? 0 : 1,
@@ -61,31 +78,38 @@ export default function TaskCard({ task, onUpdate, onDelete }: Props) {
 
   const expandedHeight = animHeight.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 400],
+    outputRange: [0, 460],
   });
+
+  const dueInfo = formatDueDate(task.due_date);
 
   return (
     <View style={styles.card}>
       {/* Header */}
       <Pressable onPress={toggleExpand}>
         <View style={styles.row}>
-          <View style={styles.leftSection}>
-            <Pressable
-              onPress={() => setDone(!done)}
-              style={styles.radioWrapper}
-            >
-              <View style={[styles.radio, done && styles.radioDone]} />
-            </Pressable>
-            <View style={styles.textBlock}>
-              <Text style={[styles.title, done && styles.titleDone]}>
-                {title}
-              </Text>
-              <Text style={styles.sub}>{projectName}</Text>
+          <Pressable onPress={() => setDone(!done)} style={styles.checkboxTap}>
+            <View style={[styles.checkbox, done && styles.checkboxChecked]}>
+              {done && <Text style={styles.checkmark}>✓</Text>}
             </View>
+          </Pressable>
+          <View style={styles.textBlock}>
+            <Text style={[styles.title, done && styles.titleDone]}>
+              {title}
+            </Text>
+            <Text
+              style={[
+                styles.due,
+                !done && dueInfo.isDueOrOverdue && styles.dueSoon,
+              ]}
+            >
+              {dueInfo.label} · {dueInfo.relative}
+            </Text>
+            {!!projectName && <Text style={styles.sub}>{projectName}</Text>}
           </View>
-          <View style={styles.dateBox}>
-            <Text style={styles.date}>{date.toLocaleDateString("de-DE")}</Text>
-          </View>
+        </View>
+        <View style={styles.chevronRow}>
+          <Text style={styles.chevron}>{expanded ? "︿" : "﹀"}</Text>
         </View>
       </Pressable>
 
@@ -97,6 +121,7 @@ export default function TaskCard({ task, onUpdate, onDelete }: Props) {
             value={title}
             onChangeText={setTitle}
             placeholder="Titel"
+            placeholderTextColor="#B9B4A9"
           />
 
           {/* Person + Datum Buttons */}
@@ -106,7 +131,7 @@ export default function TaskCard({ task, onUpdate, onDelete }: Props) {
               style={styles.metaBtn}
             >
               <View style={styles.avatar}>
-                <Text style={{ fontSize: 12, fontWeight: "600" }}>ma</Text>
+                <Text style={styles.avatarText}>ma</Text>
               </View>
               <Text style={styles.metaBtnText}>max</Text>
             </Pressable>
@@ -128,6 +153,7 @@ export default function TaskCard({ task, onUpdate, onDelete }: Props) {
             value={projectName}
             onChangeText={setProjectName}
             placeholder="Projektname"
+            placeholderTextColor="#B9B4A9"
           />
 
           <Text style={styles.label}>Beschreibung</Text>
@@ -136,10 +162,15 @@ export default function TaskCard({ task, onUpdate, onDelete }: Props) {
             style={styles.textArea}
             textAlignVertical="top"
             placeholder="Hier tippen..."
+            placeholderTextColor="#B9B4A9"
           />
 
           <Pressable style={styles.saveBtn} onPress={handleSave}>
-            <Text style={styles.saveBtnText}>Speichern</Text>
+            <Text style={styles.saveBtnText}>SPEICHERN</Text>
+          </Pressable>
+
+          <Pressable style={styles.deleteBtn} onPress={handleDelete}>
+            <Text style={styles.deleteBtnText}>LÖSCHEN</Text>
           </Pressable>
         </View>
       </Animated.View>
@@ -151,126 +182,151 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#999",
-  },
-  radioDone: {
-    backgroundColor: "#4ff75d34",
-    borderColor: "#999",
-  },
-  title: {
-    color: "#000000",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  titleDone: {
-    color: "#888",
-  },
-  sub: {
-    color: "#565656",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  radioWrapper: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
+    borderRadius: 16,
+    marginBottom: 12,
   },
   row: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 12,
   },
-  textBlock: {
+  checkboxTap: {
+    paddingTop: 2,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    borderColor: "#DBD5C8",
+    backgroundColor: "#F5F2EB",
+    alignItems: "center",
     justifyContent: "center",
   },
-  date: {
-    fontSize: 12,
-    color: "#000000",
-    fontFamily: "DMMono_Regular",
+  checkboxChecked: {
+    backgroundColor: "#E4DFD3",
+    borderColor: "#C9C2B2",
   },
-  dateBox: {
-    backgroundColor: "#a9a9a9",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
-    opacity: 0.5,
+  checkmark: {
+    color: "#3B3B3B",
+    fontSize: 14,
+    fontWeight: "700",
   },
-  leftSection: {
-    flexDirection: "row",
-    alignItems: "center",
+  textBlock: {
     flex: 1,
+    justifyContent: "center",
+  },
+  title: {
+    fontFamily: "DMSans_Medium",
+    color: "#1D1D1B",
+    fontSize: 17,
+  },
+  titleDone: {
+    color: "#B0AB9F",
+    textDecorationLine: "line-through",
+  },
+  due: {
+    fontFamily: "DMMono_Regular",
+    fontSize: 12,
+    color: "#9A968D",
+    marginTop: 4,
+  },
+  dueSoon: {
+    color: "#E85A1A",
+  },
+  sub: {
+    fontFamily: "DMMono_Regular",
+    fontSize: 12,
+    color: "#B7B2A6",
+    marginTop: 2,
+  },
+  chevronRow: {
+    alignItems: "center",
+    marginTop: 8,
+  },
+  chevron: {
+    color: "#C9C2B2",
+    fontSize: 12,
   },
   editArea: {
     marginTop: 14,
     gap: 10,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    backgroundColor: "#F5F2EB",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 14,
-    color: "#000",
+    color: "#2C2C2C",
+    fontFamily: "DMSans_Regular",
   },
   metaBtn: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
+    backgroundColor: "#F5F2EB",
+    borderRadius: 10,
     padding: 10,
   },
   metaBtnText: {
     fontSize: 14,
-    color: "#000",
+    color: "#2C2C2C",
+    fontFamily: "DMSans_Regular",
   },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#3dd6f5",
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#1D1D1B",
     alignItems: "center",
     justifyContent: "center",
   },
+  avatarText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#fff",
+  },
   label: {
-    fontSize: 12,
-    color: "#888",
+    fontFamily: "DMMono_Regular",
+    fontSize: 11,
+    letterSpacing: 1.5,
+    color: "#9A968D",
   },
   textArea: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    backgroundColor: "#F5F2EB",
     borderRadius: 10,
-    padding: 10,
-    height: 140,
+    padding: 12,
+    height: 120,
     fontSize: 14,
-    color: "#000",
+    color: "#2C2C2C",
+    fontFamily: "DMSans_Regular",
   },
   saveBtn: {
-    backgroundColor: "#000",
-    borderRadius: 8,
-    paddingVertical: 9,
+    backgroundColor: "#E85A1A",
+    borderRadius: 10,
+    paddingVertical: 12,
     alignItems: "center",
     marginTop: 4,
   },
   saveBtnText: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    letterSpacing: 1.5,
+    fontFamily: "DMMono_Medium",
   },
-
-  bottomSheet: {
-    flex: 1,
-    justifyContent: "center",
+  deleteBtn: {
+    backgroundColor: "#FBEAEA",
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  deleteBtnText: {
+    color: "#C0392B",
+    fontSize: 13,
+    letterSpacing: 1.5,
+    fontFamily: "DMMono_Medium",
   },
 });
