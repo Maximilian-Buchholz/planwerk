@@ -25,3 +25,19 @@ export function formatDueDate(dueDateIso: string) {
 
   return { label, relative, isDueOrOverdue: diffDays <= 0 };
 }
+
+export function formatRelativeDay(dateIso: string): string {
+  const date = new Date(`${dateIso}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((today.getTime() - date.getTime()) / 86400000);
+
+  if (diffDays === 0) return "Heute";
+  if (diffDays === 1) return "Gestern";
+
+  return date.toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
